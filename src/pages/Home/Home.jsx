@@ -1,42 +1,22 @@
-import { Notification } from './Home.styled';
-import { fetchTrendingMovies } from 'services/Api';
-import { useState, useEffect } from 'react';
-import { MoviesList } from '../../components/MoviesList/MoviesList';
-
+import { getTrendingMovies } from "services/api";
+import { useState, useEffect } from "react";
+import { MoviesList } from "components/MoviesList/MoviesList";
+import Box from "services/Box";
+import { TrendingTitle } from "./Home.styled";
 
 const Home = () => {
-    const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState([]);
 
-    const [error, setError] = useState(null);
-    const [status, setStatus] = useState('idle');
+  useEffect(() => {
+    getTrendingMovies().then(setMovies)
+  },[]);
 
-    useEffect(() => {
-        fetchTrendingMovies()
-            .then(response => {
-                if (response.results.length === 0) {
-                    setStatus('rejected');
-                    return
-                }
-                setStatus('resolved');
-                setMovies(response.results);
-            })
-            .catch(error => {
-                setError(error);
-                setStatus('rejected');
-            })
-    },[]);
-    
-    return (
-        <div>
-            <h1>Trending today</h1>
-            {status === 'idle' && <Notification>Start page</Notification>}
-            {status === 'pending' && <div>Loading....</div>}
-            {status === 'rejected' && <Notification>Oopps...no movies was found.{!error && <div>{error}</div>}</Notification>}
-            {status === 'resolved' && <MoviesList movies={movies} />}
-        </div>
-    );
-
+  return (
+    <Box padding={4}>
+      <TrendingTitle>Trending today</TrendingTitle>
+      <MoviesList movies={movies} />
+    </Box>
+  );
 }
 
-
-export default Home; 
+export default Home;

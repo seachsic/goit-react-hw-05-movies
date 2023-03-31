@@ -1,42 +1,36 @@
-// import { } from './Reviews.styled';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-import { fetchMovieReviews } from 'services/Api';
+import { getReviews } from "services/api";
+import Box from "services/Box";
+import { ReviewCard, AutorReview } from "./Reviews.styled";
 
 const Reviews = () => {
-    const { id } = useParams();
-  const [reviews, setReview] = useState([]);
-    const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const { movieId } = useParams();
 
-    useEffect(() => {
-        fetchMovieReviews(id)
-            .then(response => {
-                setReview(response.results);
-            })
-            .catch(error => {
-                setError(error);
-                console.log(error);
-            })
-    }, [id]);
-    
-        return (
-            <div>
-                {!reviews.length && <div>No reviews yet  {error}</div>}
-                <ul>
-                    {reviews && reviews.map(review => 
-                        <li key={review.id}>
-                            <h2>{review.author}</h2>
-                            <p>{review.content}</p>
-                        </li>
-                    ) }
-                </ul>
-            
-        </div>
-    );
+  useEffect(() => {
+    getReviews(movieId).then(setReviews);
+  }, [movieId]);
+  
+  return (
+    <div>
+      {
+        reviews.length > 0 ?
+      <Box as='ul' marginTop={5}>
+        {
+          reviews.map(review => (
+            <ReviewCard key={review.id}>
+              <AutorReview>{review.author}</AutorReview>
+              <p>{review.content}</p>
+            </ReviewCard>
+          ))
+        }
+          </Box>
+          :
+          <p>We don't have any reviews for that movie</p>
+      }
+    </div>
+  )
+};
 
-
-}
-
-
-export default Reviews; 
+export default Reviews;

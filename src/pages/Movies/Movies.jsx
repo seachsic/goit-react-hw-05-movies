@@ -1,53 +1,42 @@
-import { Notification } from './Movies.styled';
-import { useState, useEffect } from 'react';
-import { fetchSearchMovies } from 'services/Api';
-import { SearchBox } from '../../components/SearchBox/SearchBox';
-import { MoviesList } from '../../components/MoviesList/MoviesList';
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { getMovieByQuery } from "services/api";
+import { MoviesList } from "components/MoviesList/MoviesList";
+import Box from "services/Box";
 
 const Movies = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const name = searchParams.get('query');
-    const [movies, setMovies] = useState([]);
-    const [error, setError] = useState(null);
-    const [status, setStatus] = useState('idle');
+  const [query, setQuery] = useState('');
+  const [movies, setMovies] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-     useEffect(() => {
-        if (!name) {
-            return;
-        }
-        
-        setStatus('pending');
-         
-        fetchSearchMovies(name)
-            .then(response => {
-                if (response.results.length === 0) {
-                    setStatus('rejected');
-                    return
-                }
-                setMovies(response.results);
-                setStatus('resolved');
-            })
-            .catch(error => {
-                setError(error);
-                setStatus('rejected');
-            })
-     }, [name]);
-    
-    const haldleFormSubmit = query => {
-        const nextParams = query !== '' ? { query } : {};
-        setSearchParams(nextParams);
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSearchParams(query !== '' ? { query } : {});
+  }
+
+  useEffect(() => {
+    const query = searchParams.get('query');
+    if (!query) {
+      return;
     }
-    
-    return (
-        <div>
-            <SearchBox onSubmit={haldleFormSubmit} />
-            {status === 'idle' && <Notification>Please, type something to the search</Notification>}
-            {status === 'pending' && <div>Loading....</div>}
-            {status === 'rejected' && <Notification>Oopps...no movies with this name.{!error && <div>{error}</div>}</Notification>}
-            {status === 'resolved' && <MoviesList movies={movies} />}
-        </div >
-    )
-}
+    getMovieByQuery(query).then(setMovies);
+  }, [searchParams]);
 
-export default Movies; 
+  return (
+    <Box padding={4}>
+      <form onSubmit={handleSubmit}>
+        <Box marginRight='10px' display='inline'>
+          <input type='text' name='movie' onChange={handleChange} value={searchParams.get('query') ? searchParams.get('query') : query} />
+        </Box>
+        <button type='submit'>Search</button>
+      </form>
+      <MoviesList movies={movies}/>
+    </Box>
+  )
+};
+
+export default Movies;

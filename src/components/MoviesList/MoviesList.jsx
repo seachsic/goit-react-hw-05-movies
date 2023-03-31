@@ -1,19 +1,22 @@
-import { Link, useLocation } from "react-router-dom";
-import { Container, CardWrapper, MovieName } from "./MoviesList.styled";
+import { Link } from "react-router-dom"
+import { useLocation } from "react-router-dom";
+import Box from "services/Box";
+import PropTypes from 'prop-types';
 
 export const MoviesList = ({ movies }) => {
   const location = useLocation();
-  const baseImageURL = "https://image.tmdb.org/t/p/w500";
   return (
-    <Container>
-      {movies.map((movie) => (
-        <CardWrapper key={movie.id}>
-          <Link to={`${movie.id}`} state={{ from: location }}>
-            <img src={movie.poster_path ? `${baseImageURL}${movie.poster_path}` : "https://via.placeholder.com/500x750"} alt="movie.title" />
-            <MovieName>{movie.title}</MovieName>
-          </Link>
-        </CardWrapper>
+    <Box as='ul' marginTop={4}>
+      {movies.map(movie => (
+        <li key={movie.id}>
+          <Link to={`/movies/${movie.id}`} state={{from: location}}>{movie.title || movie.name}</Link>
+        </li>
       ))}
-    </Container>
-  );
+  </Box>
+  )
 };
+
+MoviesList.propTypes = {
+  movies: PropTypes.array.isRequired,
+}
+
