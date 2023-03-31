@@ -1,59 +1,65 @@
-import { useLocation, useParams, Outlet } from 'react-router-dom';
-import { getMovieById } from 'services/api';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Box from 'services/Box';
-import { Genre, Image, NavItemMovies, OverviewTitle } from './MovieDetails.styled';
-
-const baseUrl = 'https://image.tmdb.org/t/p/w500/';
+// import { } from './MovieDetails.styled';
+import { useParams, useLocation, Link, Outlet } from "react-router-dom";
+import { BackLink } from "../../components/BackLink/BackLink";
+import { fetchMoviesInfo } from 'services/Api';
+import { useState, useEffect, Suspense } from 'react';
 
 const MovieDetails = () => {
-  const { movieId } = useParams();
+    const { id } = useParams();
+    const location = useLocation();
+    const backLinkHref = location.state?.from ?? "/movies";
+    const baseImageURL = "https://image.tmdb.org/t/p/w500";
 
-  const [movie, setMovie] = useState(null);
-  const location = useLocation();
-  const navigate = useNavigate();
+    const [movie, setMovie] = useState([]);
+    const [error, setError] = useState(null);
+    useEffect(() => {
+        fetchMoviesInfo(id)
+        .then(response => {
+            setMovie(response);
+        })
+        .catch(error => {
+            setError(error);
+            console.log(error);
+        })
+    }, [id]);
+    
+       return (
+            <div>
+                <BackLink to={backLinkHref}>Back to products</BackLink>
 
-  const handleGoBack = () => {
-    navigate(location.state.from);
-  };
-  useEffect(() => {
-    getMovieById(movieId).then(setMovie);
-  }, [movieId]);
+           <div>
+             {!movie && <div>{ error }</div>}
+                    <img src={movie.poster_path ? `${baseImageURL}${movie.poster_path}` : "https://via.placeholder.com/500x750"} alt={movie.title} />
+                        <div>
+                            <h2>
+                            {movie.title}  ({id})
+                            </h2>
+                            <p>User Score: {movie.vote_average}</p>
+                            <h3>Overview</h3>
+                            <p> 
+                            {movie.overview}
+                       </p>
+                            <h3>Geners</h3>
+                            <ul> 
+                                {movie.genres && movie.genres.map(genre => <li key={genre.id}>{genre.name}</li>)}
+                            </ul>
+                        </div>
+               </div>
+               
+                <ul>
+        <li>
+          <Link to="cast" state={{ ...location.state }}>Cast</Link>
+        </li>
+        <li>
+          <Link to="reviews" state={{ ...location.state }}>Reviews</Link>
+        </li>
+      </ul>
+      <Suspense fallback={<div>Loading subpage...</div>}>
+        <Outlet />
+      </Suspense>
+            </div>
+    );
+}
 
-  if (!movie) {
-    return;
-  }
 
-  return (
-    <Box padding={4}>
-      <button type="button" onClick={handleGoBack}>
-        Go back
-      </button>
-      <Box paddingY={3} display='grid' gridTemplateColumns='200px 1fr' borderBottom='2px solid green'>
-        <Image src={`${baseUrl + movie.poster_path}`} alt={movie.title} />
-        <Box marginLeft={4} height='100%'>
-          <h2>{movie.title} ({new Date(movie.release_date).getFullYear()})</h2>
-          <OverviewTitle>Overview:</OverviewTitle>
-          <p>{movie.overview}</p>
-          <OverviewTitle>Genres:</OverviewTitle>
-          <p>{movie.genres.map((genre) => {
-            return (<Genre key={genre.id}>{genre.name}</Genre>)
-          }) }</p>
-        </Box>
-      </Box>
-      <Box marginTop='20px'>
-        <h2>Additional information</h2>
-        <NavItemMovies to="cast" state={location.state}>
-          Cast
-        </NavItemMovies>
-        <NavItemMovies to="reviews" state={location.state}>
-          Reviews
-        </NavItemMovies>
-      </Box>
-      <Outlet />
-    </Box>
-  );
-};
-
-export default MovieDetails;
+export default MovieDetails; 
