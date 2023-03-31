@@ -1,34 +1,42 @@
-import { useParams } from 'react-router-dom';
-import { useReviews } from 'hooks/useReviews';
-import { Loader } from 'components/Loader/Loader';
-import PropTypes from 'prop-types';
+// import { } from './Reviews.styled';
+import { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
+
+import { fetchMovieReviews } from 'services/Api';
 
 const Reviews = () => {
-    const { movieId } = useParams();
-    const { reviews } = useReviews(movieId);
+    const { id } = useParams();
+  const [reviews, setReview] = useState([]);
+    const [error, setError] = useState(null);
 
-    if (!reviews) return <Loader />;
-
-    if (reviews.length === 0) {
-        return <p>We don't have any reviews for this movie</p>;
-    };
-
-    return (
-        <ul>
-        {reviews.map(review => {
-            return (
-            <li key={review.author}>
-                <p>{review.author}</p>
-                <p>{review.content}</p>
-            </li>
-            );
-        })}
-        </ul>
+    useEffect(() => {
+        fetchMovieReviews(id)
+            .then(response => {
+                setReview(response.results);
+            })
+            .catch(error => {
+                setError(error);
+                console.log(error);
+            })
+    }, [id]);
+    
+        return (
+            <div>
+                {!reviews.length && <div>No reviews yet  {error}</div>}
+                <ul>
+                    {reviews && reviews.map(review => 
+                        <li key={review.id}>
+                            <h2>{review.author}</h2>
+                            <p>{review.content}</p>
+                        </li>
+                    ) }
+                </ul>
+            
+        </div>
     );
-};
 
-Reviews.propTypes = {
-movieId: PropTypes.string.isRequired,
-};
 
-export default Reviews;
+}
+
+
+export default Reviews; 

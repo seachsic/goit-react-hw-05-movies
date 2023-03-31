@@ -1,21 +1,41 @@
-import { Wrapper, Icon, Input } from "./searchbox.styled";
-import PropTypes from 'prop-types';
+import { SearchbarHeader, SearchForm, SearchFormButton, SearchFormButtonLabel, SearchFormInput } from "./SearchBox.styled";
+import { useState } from 'react';
 
-export const Searchbox = ({ value, onChange }) => {
+export const SearchBox = ({ onSubmit }) => {
 
-    return (
-        <Wrapper>
-        <Icon />
-        <Input
+  const [inputName, setInputName] = useState('');
+
+  const hangleNameOnChange = event => {
+    setInputName(event.currentTarget.value.toLowerCase());
+  }
+
+  const handleSubmit = event => {
+    event.preventDefault();
+    if (inputName.trim() === '') {
+      alert('Type something in search input');
+      return
+    }
+    onSubmit(inputName);
+    setInputName('');
+  }
+  
+  return (
+    <SearchbarHeader>
+      <SearchForm onSubmit={handleSubmit}>
+        <SearchFormButton type="submit">
+        <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+        </SearchFormButton>
+
+          <SearchFormInput
             type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-        />
-        </Wrapper>
-    );
-};
-
-Searchbox.propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange:PropTypes.func.isRequired
+            name="input"
+            value={inputName}
+            onChange={hangleNameOnChange}
+            autoComplete="off"
+            autoFocus
+            placeholder="Search movies"
+          />
+      </SearchForm>
+    </SearchbarHeader>    
+  );
 };

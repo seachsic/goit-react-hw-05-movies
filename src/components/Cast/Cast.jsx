@@ -1,43 +1,43 @@
-import { useCast } from 'hooks/useCast';
-import { useParams } from 'react-router-dom';
-import { Container, Span } from './cast.styled';
-import { Loader } from 'components/Loader/Loader';
-import PropTypes from 'prop-types';
+// import { } from './Cast.styled';
+import { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
+
+import { fetchMovieCast } from 'services/Api';
+
+const baseImageURL = "https://image.tmdb.org/t/p/w500";
+
 
 const Cast = () => {
-    const { movieId } = useParams();
-    const { actors } = useCast(movieId);
+    const { id } = useParams();
+    const [cast, setCast] = useState([]);
+    const [error, setError] = useState(null);
 
-    if (!actors) return <Loader />;
-        // console.log(movieId);
+    useEffect(() => {
+        fetchMovieCast(id)
+         .then(response => {
+            setCast(response.cast);
+            })
+            .catch(error => {
+                setError(error);
+                console.log(error);
+            })
+    }, [id]);
+    
     return (
-        <Container>
-        {actors.map(actor => {
-            return (
-            <div key={actor.id}>
-                <img
-                src={
-                    actor.profile_path
-                    ? `https://image.tmdb.org/t/p/w500/${actor.profile_path}`
-                    : `https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg`
-                }
-                alt={actor.name}
-                width="180"
-                height="250"
-                />
-                <p>
-                <Span>{actor.name}</Span>
-                </p>
-                <p>As: {actor.character}</p>
-            </div>
-            );
-        })}
-        </Container>
+        <div>
+            {!cast.length && <div>No reviews yet {error}</div>}
+                <ul>
+                    {cast && cast.map(cast => 
+                        <li key={cast.id}>
+                            <div><img  src={cast.profile_path ? `${baseImageURL}${cast.profile_path}` : "https://via.placeholder.com/200x300"} width="200" alt={cast.name} /></div>
+                            <h2>{cast.name}</h2>
+                            <p>Character: {cast.character}</p>
+                        </li>
+                    ) }
+                </ul>
+        </div>
     );
-};
+}
 
-Cast.propTypes = {
-movieId: PropTypes.string.isRequired,
-};
 
-export default Cast;
+export default Cast; 
